@@ -15,23 +15,35 @@ def shapley(original_dataset):
     # Add column length to final dataset
     data = add_length(data)
     # Order the channels
-    data["channels"] = order_channels(data["channels"]) 
+    data["channels"] = order_channels(data["channels"])
+    # Create tuples for joining against coalitions
+    tupes = []
+    for i in np.arange(len(data["channels"])):
+        if len(data["channels"][i].split(",")) == 1:
+            tupes.append(tuple([data["channels"][i]]))
+        else:
+            t = []
+            for c in data["channels"][i].split(","):
+                t.append(c)
+            tupes.append(tuple(t))
+    data["join"] = tupes
+    
     # Sort the data frame by length ascending
-    data.sort_values(by = ["length"], inplace = True)     
+    data.sort_values(by = ["length"], inplace = True)   
+    
     # Find all uniques channels within the data
     channels = find_all_channels(data)
+    # Find all coalitions for all the channels and save it in a Dataframe
+    coalitions = pd.DataFrame({'coalitions': create_all_coalitions(channels)})
+    # Create the characteristic function from the data we have
+    coalitions_from_data = pd.DataFrame({"channels":data["channels"],
+                                         "coalitions":data["join"],
+                                         "metric":data["metric"],
+                                         "length":data["length"]})
     # Create now the full characteristic function with the value from the data we have adding zeros for missing coalitions
-    characteristic_function = pd.merge(pd.DataFrame({'channels': create_all_coalitions(channels)}), 
-                                       pd.DataFrame({"channels":data["channels"],
-                                                     "metric":data["metric"],
-                                                     "length":data["length"]}), 
-                                       how = 'left', 
-                                       on = "channels")
+    characteristic_function = pd.merge(coalitions, coalitions_from_data, how = 'left', on = "coalitions")
     characteristic_function = find_NAs(characteristic_function)
-    # Order the characteristic function by length descending
-    characteristic_function.sort_values(by = "length", ascending = False, inplace = True)
-    characteristic_function.reset_index(inplace = True)
-    
+
     values = []
     # We loop through any coalition (2^N - 1) combinations if we exclude the 0,0,..,0 case
     # So basically we go through the df row by row
@@ -47,4 +59,4 @@ def shapley(original_dataset):
         
         values.append(local_value)
 
-    return pd.DataFrame({"Channels":characteristic_function["channels"],"Shapley Values":values})
+    return pd.DataFrame({"Channels":characteristic_function["channels"],"Shapley Values":values}) 
