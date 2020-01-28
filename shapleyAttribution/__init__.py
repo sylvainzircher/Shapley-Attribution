@@ -4,6 +4,9 @@ from .functions import find_all_channels
 from .functions import add_length
 from .functions import order_channels
 from .functions import marginal_value
+import pandas as pd
+import numpy as np
+import math
 
 def shapley(original_dataset):
     # Make a copy of the original dataset not to change it directly
