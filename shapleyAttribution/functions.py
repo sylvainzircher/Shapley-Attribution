@@ -10,8 +10,8 @@ def create_all_coalitions(channels):
     
     for i in range(1,repeat+1):
         for s in combinations(channels, i):
-            all_coalitions.append(",".join(sorted(s)))
-
+            all_coalitions.append(tuple(sorted(s)))
+        
     return all_coalitions
 
 
@@ -60,6 +60,9 @@ def order_channels(data):
 def marginal_value(channel, channels, characteristic_function): 
     # create a local copie of the characteristic function
     char_func = characteristic_function.copy()   
+    # Order the characteristic function by length descending
+    char_func.sort_values(by = "length", ascending = False, inplace = True)
+    char_func.reset_index(inplace = True)
     
     values = []
     
@@ -67,37 +70,43 @@ def marginal_value(channel, channels, characteristic_function):
     # We are only interested in the coalitions where channel was a part of
     coalitions = char_func[(char_func["channels"].str.contains(channel)) &
                           (char_func["length"] <= L)]["channels"]
-    # For each channel combinations in the coalitions we are interested in
+    # For each channel combinations in the characteristic function
     for c in coalitions:
         l = len(c.split(","))
             
         # Remove cases where for example where channels == 'a,c' but 'a,b' popped up in the coalitions list because
-        # the selected channel is 'a' & the channels value is 'a,c'. We want to make sure that we do not include 'a,b' related calcs
+        # the selected channel is 'a'. We want to make sure that we do not include 'a,b' related calcs
         if (l == L) and c != channels[0]:
             continue
             
         else:
             if l == 1:               
-                factor = math.factorial((l-1)) * math.factorial(L - (l - 1) - 1) / math.factorial(L)
-                marginal_value = char_func[(char_func["channels"].str.contains(c)) &
-                              (char_func["length"] == l)]["metric"].item()
-                values.append(marginal_value * factor)
-
+                try:
+                    factor = math.factorial((l-1)) * math.factorial(L - (l - 1) - 1) / math.factorial(L)
+                    marginal_value = char_func[(char_func["channels"].str.contains(c)) &
+                                  (char_func["length"] == l)]["metric"].item()
+                    values.append(marginal_value * factor)
+                except ValueError:
+                    continue
             else:
-                v1 = char_func[(char_func["channels"].str.contains(c)) &
-                              (char_func["length"] == l)]["metric"].item()                    
+                try:
+                    v1 = char_func[(char_func["channels"].str.contains(c)) &
+                                  (char_func["length"] == l)]["metric"].item()                    
+            
+                    coalition_without_channel = c.split(",")
+                    coalition_without_channel.remove(channel)
+                    coalition_without_channel = ",".join(coalition_without_channel)
 
-                coalition_without_channel = c.split(",")
-                coalition_without_channel.remove(channel)
-                coalition_without_channel = ",".join(coalition_without_channel)
-
-                v2 = char_func[(char_func["channels"].str.contains(coalition_without_channel)) &
-                              (char_func["length"] == l - 1)]["metric"].item()
-                marginal_value = v1 - v2
-                factor = math.factorial((l-1)) * math.factorial(L - (l - 1) - 1) / math.factorial(L)
-                values.append(marginal_value*factor)
+                    v2 = char_func[(char_func["channels"].str.contains(coalition_without_channel)) &
+                                  (char_func["length"] == l - 1)]["metric"].item()
+                    marginal_value = v1 - v2
+                    factor = math.factorial((l-1)) * math.factorial(L - (l - 1) - 1) / math.factorial(L)
+                    values.append(marginal_value*factor)
+                    
+                except ValueError:
+                    continue
                     
     if len(values) == 0:
         return -1
     else:
-        return np.sum(values) 
+        return np.sum(values)
