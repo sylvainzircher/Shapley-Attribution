@@ -4,11 +4,18 @@ from .functions import find_all_channels
 from .functions import add_length
 from .functions import order_channels
 from .functions import marginal_value
+from .functions import check_input
 import pandas as pd
+from pandas.api.types import is_string_dtype
+from pandas.api.types import is_numeric_dtype
 import numpy as np
 import math
 
 def shapley(original_dataset):
+    if check_input(original_dataset) == False:
+        print("Please make sure you are passing a DataFrame with two columns in the shapley function.")
+        print("The first column of the DataFrame should have strings. The second column should be of type numeric.")
+        return
     # Make a copy of the original dataset not to change it directly
     data = original_dataset.copy()
     data.columns = ["channels","metric"]

@@ -1,6 +1,17 @@
 import pandas as pd
+from pandas.api.types import is_string_dtype
+from pandas.api.types import is_numeric_dtype
 import numpy as np
 import math
+
+def check_input(data):
+    if (data.shape[1] == 2):
+        if (isinstance(data, pd.DataFrame)) & (is_string_dtype(data.iloc[:,0])) & (is_numeric_dtype(data.iloc[:,1])):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 def create_all_coalitions(channels):
     from itertools import combinations
