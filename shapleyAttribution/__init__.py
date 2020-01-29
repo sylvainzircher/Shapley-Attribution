@@ -12,9 +12,13 @@ import numpy as np
 import math
 
 def shapley(original_dataset):
+    # Check that verifies that what is being passed to the shapley() hs the right format.
     if check_input(original_dataset) == False:
+        print("----------------------------------------------------------------------------------------")
         print("Please make sure you are passing a DataFrame with two columns in the shapley function.")
-        print("The first column of the DataFrame should have strings. The second column should be of type numeric.")
+        print("The first column of the DataFrame should be of type string.")
+        print("The second column should be of type numeric.")
+        print("----------------------------------------------------------------------------------------")
         return
     # Make a copy of the original dataset not to change it directly
     data = original_dataset.copy()
