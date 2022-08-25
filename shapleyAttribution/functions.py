@@ -69,7 +69,7 @@ def order_channels(data):
 
 
 def marginal_value(channel, channels, characteristic_function): 
-    # create a local copie of the characteristic function
+    # create a local copy of the characteristic function
     char_func = characteristic_function.copy()   
     # Order the characteristic function by length descending
     char_func.sort_values(by = "length", ascending = False, inplace = True)
